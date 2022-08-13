@@ -1,9 +1,26 @@
+#!/usr/bin/env python
+import RPi.GPIO as GPIO
+from time import sleep
 import random
-
+import time
 import cv2
 import mediapipe as mp
 import math
 from send_wechat import wechat_send
+
+servo_pin = 8  # 舵机信号线接树莓派GPIO17
+TRIG = 17  # send-pin
+ECHO = 18  # receive-pin
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(TRIG, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(ECHO, GPIO.IN)
+GPIO.setwarnings(False)
+GPIO.setup(servo_pin, GPIO.OUT, initial=False)
+
+
+# 旋转角度转换到PWM占空比
+def angleToDutyCycle(angle):
+    return 2.5 + angle / 180.0 * 10
 
 
 def vector_2d_angle(v1, v2):
@@ -156,16 +173,28 @@ def detect():
                     print(gesture_str)
                     if gesture_str == '1':
                         print("开盖！")
-                        # wechat_send(gesture_str)
-                        break
+                        p = GPIO.PWM(servo_pin, 50)  # 初始频率为50HZ
+                        p.start(angleToDutyCycle(90))  # 舵机初始化角度为90
+                        sleep(1)
+                        p.ChangeDutyCycle(angleToDutyCycle(135))
+                        sleep(1)
+                        p.ChangeDutyCycle(angleToDutyCycle(180))
+                        sleep(1)
+                        p.ChangeDutyCycle(angleToDutyCycle(180))
+                        sleep(1)
+                        p.ChangeDutyCycle(0)  # 清空当前占空比，使舵机停止抖动
+                        cv2.destroyAllWindows()
+                        cap.release()
+                        wechat_send("Hello! We detected gesture " + gesture_str + " , the top of the bin is opened.")
+                        return
+
                     elif gesture_str == '2':
                         print("关盖！")
                         # wechat_send(gesture_str)
-                        break
+
                     elif gesture_str == '3':
                         print("换袋!")
                         # wechat_send(gesture_str)
-                        break
 
                     cv2.putText(frame, gesture_str, (50, 100), 0, 1.3, (0, 0, 255), 2)
 
@@ -178,4 +207,21 @@ def detect():
 
 # 超声波测距函数
 def get_dis():
-    return random.uniform(15, 60)
+    GPIO.output(TRIG, 1)  # 给Trig一个10US以上的高电平
+    time.sleep(0.0001)
+    GPIO.output(TRIG, 0)
+
+    # 等待低电平结束，然后记录时间
+    while GPIO.input(ECHO) == 0:  # 捕捉 echo 端输出上升沿
+        pass
+    time1 = time.time()
+
+    # 等待高电平结束，然后记录时间
+    while GPIO.input(ECHO) == 1:  # 捕捉 echo 端输出下降沿
+        pass
+    time2 = time.time()
+
+    during = time2 - time1
+    # ECHO高电平时刻时间减去低电平时刻时间，所得时间为超声波传播时间
+    print(during * 340 / 2 * 100)
+    return during * 340 / 2 * 100

@@ -32,27 +32,27 @@ def index():
         msg = parse_message(request.get_data())
         if msg.type == 'text':
             print(msg.content)
-            if msg.content == "开启":
-                openTest()
-            if msg.content == "关闭":
-                closeTest()
+            # if msg.content == "开启":
+            #     # openTest()
+            # if msg.content == "关闭":
+            #     # closeTest()
             reply = create_reply('这是条文字消息', msg)
         if msg.type == 'image':
             reply = create_reply('这是条图片消息', msg)
     return reply.render()
 
 
-def openTest():
-    GPIO.setmode(GPIO.BCM)  # 设置GPIO模式，BCM模式在所有数码派通用
-    GPIO.setup(21, GPIO.OUT)  # 设置GPIO21为电流输出
-    GPIO.output(21, GPIO.HIGH)  # GPIO21 输出3.3V
-
-
-def closeTest():
-    GPIO.cleanup()
-
+# def openTest():
+#     GPIO.setmode(GPIO.BCM)  # 设置GPIO模式，BCM模式在所有数码派通用
+#     GPIO.setup(21, GPIO.OUT)  # 设置GPIO21为电流输出
+#     GPIO.output(21, GPIO.HIGH)  # GPIO21 输出3.3V
+#
+#
+# def closeTest():
+#     GPIO.cleanup()
+#
 
 if __name__ == '__main__':
     app.run(
-        host='0.0.0.0', port=8080, debug=True,
+        host='0.0.0.0', port=8081, debug=True,
     )
