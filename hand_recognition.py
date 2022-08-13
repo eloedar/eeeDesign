@@ -173,16 +173,7 @@ def detect():
                     print(gesture_str)
                     if gesture_str == '1':
                         print("开盖！")
-                        p = GPIO.PWM(servo_pin, 50)  # 初始频率为50HZ
-                        p.start(angleToDutyCycle(90))  # 舵机初始化角度为90
-                        sleep(1)
-                        p.ChangeDutyCycle(angleToDutyCycle(135))
-                        sleep(1)
-                        p.ChangeDutyCycle(angleToDutyCycle(180))
-                        sleep(1)
-                        p.ChangeDutyCycle(angleToDutyCycle(180))
-                        sleep(1)
-                        p.ChangeDutyCycle(0)  # 清空当前占空比，使舵机停止抖动
+                        open_top()
                         cv2.destroyAllWindows()
                         cap.release()
                         wechat_send("Hello! We detected gesture " + gesture_str + " , the top of the bin is opened.")
@@ -205,10 +196,23 @@ def detect():
     cv2.destroyAllWindows()
 
 
+def open_top():
+    p = GPIO.PWM(servo_pin, 50)  # 初始频率为50HZ
+    p.start(angleToDutyCycle(90))  # 舵机初始化角度为90
+    sleep(1)
+    p.ChangeDutyCycle(angleToDutyCycle(135))
+    sleep(1)
+    p.ChangeDutyCycle(angleToDutyCycle(180))
+    sleep(1)
+    p.ChangeDutyCycle(angleToDutyCycle(180))
+    sleep(1)
+    p.ChangeDutyCycle(0)  # 清空当前占空比，使舵机停止抖动
+
+
 # 超声波测距函数
 def get_dis():
     GPIO.output(TRIG, 1)  # 给Trig一个10US以上的高电平
-    time.sleep(0.0001)
+    time.sleep(0.00001)
     GPIO.output(TRIG, 0)
 
     # 等待低电平结束，然后记录时间
@@ -223,5 +227,6 @@ def get_dis():
 
     during = time2 - time1
     # ECHO高电平时刻时间减去低电平时刻时间，所得时间为超声波传播时间
+    # if random.random() > 0.5:
     print(during * 340 / 2 * 100)
     return during * 340 / 2 * 100

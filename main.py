@@ -1,6 +1,6 @@
 import time
 
-from hand_recognition import get_dis, detect
+from hand_recognition import get_dis, detect, open_top
 
 if __name__ == '__main__':
     while True:
