@@ -29,7 +29,6 @@ def wechat_send(text):
                                    "![Bing](https://www.todaybing.com/api/today/fr)"
                                    "每日格言：" + content + note % (
                                 humidity, temperature)}  # 字典格式，推荐使用，它会自动帮你按照k-v拼接url
-        print(myParams)
         for url in urls:
             res = requests.get(url=url, params=myParams)
     else:
@@ -40,7 +39,6 @@ def wechat_send(text):
                                    "![Bing](https://www.todaybing.com/api/today/fr)"
                                    "每日格言：" + content + note}  # 字典格式，推荐使用，它会自动帮你按照k-v拼接url
 
-        print(myParams)
         for url in urls:
             res = requests.get(url=url, params=myParams)
 
