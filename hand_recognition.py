@@ -8,7 +8,7 @@ import mediapipe as mp
 import math
 from send_wechat import wechat_send
 
-servo_pin = 8  # 舵机信号线接树莓派GPIO17
+servo_pin = 19 # 舵机信号线接树莓派GPIO8
 TRIG = 17  # send-pin
 ECHO = 18  # receive-pin
 GPIO.setmode(GPIO.BCM)
@@ -16,7 +16,7 @@ GPIO.setup(TRIG, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(ECHO, GPIO.IN)
 GPIO.setwarnings(False)
 GPIO.setup(servo_pin, GPIO.OUT, initial=False)
-
+p = GPIO.PWM(servo_pin, 50)  # 初始频率为50HZ
 
 # 旋转角度转换到PWM占空比
 def angleToDutyCycle(angle):
@@ -173,15 +173,18 @@ def detect():
                     print(gesture_str)
                     if gesture_str == '1':
                         print("开盖！")
-                        open_top()
                         cv2.destroyAllWindows()
                         cap.release()
                         wechat_send("Hello! We detected gesture " + gesture_str + " , the top of the bin is opened.")
+                        open_top()
                         return
 
                     elif gesture_str == '2':
                         print("关盖！")
-                        # wechat_send(gesture_str)
+                        close_top()
+                        cap.release()
+                        wechat_send(gesture_str)
+                        return
 
                     elif gesture_str == '3':
                         print("换袋!")
@@ -197,7 +200,7 @@ def detect():
 
 
 def open_top():
-    p = GPIO.PWM(servo_pin, 50)  # 初始频率为50HZ
+
     p.start(angleToDutyCycle(90))  # 舵机初始化角度为90
     sleep(1)
     p.ChangeDutyCycle(angleToDutyCycle(135))
@@ -208,7 +211,14 @@ def open_top():
     sleep(1)
     p.ChangeDutyCycle(0)  # 清空当前占空比，使舵机停止抖动
 
-
+def close_top():
+    p.ChangeDutyCycle(angleToDutyCycle(135))
+    sleep(1)
+    p.ChangeDutyCycle(angleToDutyCycle(90))
+    sleep(1)
+    p.ChangeDutyCycle(angleToDutyCycle(90))
+    sleep(1)
+    p.ChangeDutyCycle(0)
 # 超声波测距函数
 def get_dis():
     GPIO.output(TRIG, 1)  # 给Trig一个10US以上的高电平
